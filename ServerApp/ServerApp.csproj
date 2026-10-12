@@ -17,9 +17,21 @@
 		<ProjectReference Include="..\..\ServerShared\ServerShared\ServerShared.csproj" />
 	</ItemGroup>
 
+	<!-- Title resources live in their own repo (ServerApp-Titles), checked out
+	     next to this one like ServerShared. Override with -p:TitlesDir=... -->
+	<PropertyGroup>
+		<TitlesDir Condition="'$(TitlesDir)' == ''">$(MSBuildThisFileDirectory)..\..\ServerApp-Titles\</TitlesDir>
+		<TitlesDir>$([MSBuild]::EnsureTrailingSlash('$(TitlesDir)'))</TitlesDir>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<Content Include="Titles\**\*.*">
+		<Content Include="$(TitlesDir)**\*.*" Exclude="$(TitlesDir).git\**;$(TitlesDir).git*;$(TitlesDir)*.md;$(TitlesDir)LICENSE*">
+			<Link>Titles\%(RecursiveDir)%(Filename)%(Extension)</Link>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
+
+	<Target Name="WarnMissingTitles" BeforeTargets="Build" Condition="!Exists('$(TitlesDir)')">
+		<Warning Text="Title resources not found at $(TitlesDir); the build will have no Titles/ folder. Clone ServerApp-Titles next to ServerApp or pass -p:TitlesDir=..." />
+	</Target>
 </Project>

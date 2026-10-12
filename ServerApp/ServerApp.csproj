@@ -14,6 +14,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ServerEmus.ServerShared" Version="0.0.14" />
+		<ProjectReference Include="..\..\ServerShared\ServerShared\ServerShared.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Titles\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 </Project>

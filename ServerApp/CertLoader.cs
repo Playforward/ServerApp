@@ -1,6 +1,7 @@
 ﻿using ModdableWebServer.Helper;
 using Serilog;
 using ServerShared.Controllers;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
 namespace ServerApp;
@@ -26,6 +27,7 @@ internal static class CertLoader
             {
                 Log.Information("Adding cert: {cert}", cert);
                 X509Certificate2 cert2 = (CertHelper.GetCert(cert, password) as X509Certificate2)!;
+                LogPin(cert, cert2);
                 if (certDetail.IsMainCert)
                 {
                     ServerController.MainCertificate = cert2;
@@ -44,6 +46,7 @@ internal static class CertLoader
                 password = "test";
             var pfx = certificate.Export(X509ContentType.Pfx, password);
             certificate = X509CertificateLoader.LoadPkcs12(pfx, password);
+            LogPin(cert, certificate);
             if (certDetail.IsMainCert)
             {
                 ServerController.MainCertificate = certificate;
@@ -51,5 +54,11 @@ internal static class CertLoader
             }
             ServerController.Certificates.Add(certificate);
         }
+    }
+
+    private static void LogPin(string file, X509Certificate2 certificate)
+    {
+        string pin = Convert.ToBase64String(SHA256.HashData(certificate.PublicKey.ExportSubjectPublicKeyInfo()));
+        Log.Information("Cert {File}: shims trust it with tls_pin_sha256={Pin}", file, pin);
     }
 }

@@ -37,7 +37,7 @@ public static class ArgProcess
             MainLogger.FileLevelSwitch.MinimumLevel = LogEventLevel.Verbose;
         }
 
-        if (!Directory.Exists("Cert") && Program.ServerAppSettings.Servers.Any(x => x.UseCerts = true))
+        if (!Directory.Exists("Cert") && Program.ServerAppSettings.Servers.Any(x => x.UseCerts))
         {
             Log.Error("You have not created a 'Cert' folder to include your certificates, but your settings have to user cert. Please make a 'Cert' directory and install any certificate!");
             Environment.Exit(1);

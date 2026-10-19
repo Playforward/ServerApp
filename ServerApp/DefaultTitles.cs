@@ -46,6 +46,19 @@ internal static class DefaultTitles
         },
         new()
         {
+            TitleId = "assassins-creed-brotherhood",
+            Name = "Assassin's Creed Brotherhood",
+            ResourceDir = "Titles/AssassinsCreedBrotherhood",
+            ProtocolFamily = "brotherhood",
+            Matchers = new()
+            {
+                LegacyOnlineConfigId = "f26ad290e85146a685acbbb5f6ed7672",
+                AccessKey = "UjhTgf85",
+                Ports = [6576, 6577],
+            },
+        },
+        new()
+        {
             TitleId = "farcry4",
             Name = "Far Cry 4",
             ResourceDir = "Titles/FarCry4",
@@ -65,6 +78,13 @@ internal static class DefaultTitles
                 AppId = "e0b29a98-ce38-4bc7-96ee-9d20e793e9e3",
                 SpaceId = "f40e304d-8e8d-4343-8270-d06487c35add",
             },
+        },
+        new()
+        {
+            TitleId = "grand-theft-auto-iv",
+            Name = "Grand Theft Auto IV",
+            ResourceDir = "Titles/GTAIV",
+            ProtocolFamily = "ros",
         },
         new()
         {

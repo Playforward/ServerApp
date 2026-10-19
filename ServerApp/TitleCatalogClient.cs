@@ -35,10 +35,68 @@ internal static class TitleCatalogClient
     /// </summary>
     public static void Apply(Settings.TitleCatalogSettings settings, IReadOnlyList<TitleDescriptor> titles)
     {
+        HashSet<TitleDescriptor> fromCatalog = ApplyCatalog(settings, titles);
+        FillFromBuiltIns(titles, fromCatalog);
+    }
+
+    /// <summary>
+    /// Fills the protocol facts a title is missing from what this host ships
+    /// for it (<see cref="DefaultTitles"/>), for every title the catalog did
+    /// not answer for. Without it a host with no accounts service, or one
+    /// that cannot reach it on a first start, would refuse every title whose
+    /// Configs/Titles.json entry leaves its family to the catalog. Only empty
+    /// fields are filled: what an operator wrote in the file stands.
+    /// </summary>
+    internal static void FillFromBuiltIns(IReadOnlyList<TitleDescriptor> titles, IReadOnlySet<TitleDescriptor> fromCatalog)
+    {
+        foreach (TitleDescriptor title in titles)
+        {
+            if (fromCatalog.Contains(title) || BuiltInFor(title) is not { } builtIn)
+                continue;
+            title.Matchers ??= new();
+            List<string> filled = [];
+            if (string.IsNullOrWhiteSpace(title.ProtocolFamily) && !string.IsNullOrWhiteSpace(builtIn.ProtocolFamily))
+            {
+                title.ProtocolFamily = builtIn.ProtocolFamily;
+                filled.Add("family");
+            }
+            if (string.IsNullOrWhiteSpace(title.Matchers.AccessKey) && !string.IsNullOrWhiteSpace(builtIn.Matchers.AccessKey))
+            {
+                title.Matchers.AccessKey = builtIn.Matchers.AccessKey;
+                filled.Add("access key");
+            }
+            if (string.IsNullOrWhiteSpace(title.Matchers.LegacyOnlineConfigId) && !string.IsNullOrWhiteSpace(builtIn.Matchers.LegacyOnlineConfigId))
+            {
+                title.Matchers.LegacyOnlineConfigId = builtIn.Matchers.LegacyOnlineConfigId;
+                filled.Add("online-config id");
+            }
+            if (filled.Count > 0)
+                Log.Information("[titles] {Title}: {Filled} from this host's built-in facts for {BuiltIn}",
+                    title, string.Join(", ", filled), builtIn.TitleId);
+        }
+    }
+
+    /// <summary>
+    /// The built-in entry for a title: by slug, else by an identifier only
+    /// that game uses, since a hand-written Titles.json may name a title
+    /// differently from the catalog.
+    /// </summary>
+    private static TitleDescriptor? BuiltInFor(TitleDescriptor title) =>
+        DefaultTitles.All.FirstOrDefault(d => string.Equals(d.TitleId, title.TitleId, StringComparison.OrdinalIgnoreCase))
+        ?? DefaultTitles.All.FirstOrDefault(d => Same(d.Matchers.LegacyOnlineConfigId, title.Matchers?.LegacyOnlineConfigId))
+        ?? DefaultTitles.All.FirstOrDefault(d => Same(d.Matchers.AppId, title.Matchers?.AppId));
+
+    private static bool Same(string? builtIn, string? configured) =>
+        !string.IsNullOrWhiteSpace(builtIn) && string.Equals(builtIn, configured, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Lays the catalog over the titles and returns the ones it answered for.</summary>
+    private static HashSet<TitleDescriptor> ApplyCatalog(Settings.TitleCatalogSettings settings, IReadOnlyList<TitleDescriptor> titles)
+    {
+        HashSet<TitleDescriptor> applied = [];
         if (string.IsNullOrWhiteSpace(settings.Url))
         {
-            Log.Information("[titles] no TitleCatalog.Url configured; serving Configs/{File} as written", TitleRegistry.ConfigFileName);
-            return;
+            Log.Information("[titles] no TitleCatalog.Url configured; serving Configs/{File} with this host's built-in facts", TitleRegistry.ConfigFileName);
+            return applied;
         }
 
         (List<TitleProtocolFacts>? facts, string source) = Fetch(settings) is { } live
@@ -46,9 +104,9 @@ internal static class TitleCatalogClient
             : (ReadCache(settings), "the cached copy");
         if (facts is null)
         {
-            Log.Warning("[titles] no protocol facts from {Url} and no cache at Configs/{Cache}; serving Configs/{File} as written",
+            Log.Warning("[titles] no protocol facts from {Url} and no cache at Configs/{Cache}; serving Configs/{File} with this host's built-in facts",
                 settings.Url, settings.CacheFileName, TitleRegistry.ConfigFileName);
-            return;
+            return applied;
         }
 
         var byId = new Dictionary<string, TitleProtocolFacts>(StringComparer.OrdinalIgnoreCase);
@@ -56,16 +114,16 @@ internal static class TitleCatalogClient
             if (!string.IsNullOrWhiteSpace(fact.TitleId))
                 byId[fact.TitleId] = fact;
 
-        int applied = 0;
         foreach (TitleDescriptor title in titles)
         {
             if (!byId.Remove(title.TitleId, out TitleProtocolFacts? fact))
                 continue;
             title.ApplyFacts(fact);
-            applied++;
+            applied.Add(title);
         }
         Log.Information("[titles] protocol facts for {Applied} of {Hosted} hosted title(s) came from {Source}; {Unhosted} supported title(s) are not hosted here ({Names})",
-            applied, titles.Count, source, byId.Count, byId.Count == 0 ? "-" : string.Join(", ", byId.Keys));
+            applied.Count, titles.Count, source, byId.Count, byId.Count == 0 ? "-" : string.Join(", ", byId.Keys));
+        return applied;
     }
 
     private static List<TitleProtocolFacts>? Fetch(Settings.TitleCatalogSettings settings)

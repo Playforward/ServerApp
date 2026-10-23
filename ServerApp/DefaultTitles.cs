@@ -59,6 +59,57 @@ internal static class DefaultTitles
         },
         new()
         {
+            TitleId = "assassins-creed-revelations",
+            Name = "Assassin's Creed Revelations",
+            ResourceDir = "Titles/AssassinsCreedRevelations",
+            ProtocolFamily = "revelations",
+            Matchers = new()
+            {
+                LegacyOnlineConfigId = "31ba374e5cb44188b8372a39ebd93c4b",
+                AccessKey = "rsp8iTUt",
+                Ports = [6580, 6581],
+            },
+        },
+        new()
+        {
+            TitleId = "assassins-creed-3",
+            Name = "Assassin's Creed III",
+            ResourceDir = "Titles/AssassinsCreed3",
+            ProtocolFamily = "assassinscreed3",
+            Matchers = new()
+            {
+                LegacyOnlineConfigId = "f61530e62dfd4586ba829266cfdb55aa",
+                AccessKey = "HWuYjVg0",
+                Ports = [6586, 6587],
+            },
+        },
+        new()
+        {
+            TitleId = "driver-san-francisco",
+            Name = "Driver: San Francisco",
+            ResourceDir = "Titles/DriverSanFrancisco",
+            ProtocolFamily = "driver",
+            Matchers = new()
+            {
+                LegacyOnlineConfigId = "885642bfde8842b79bbcf2c1f8102403",
+                AccessKey = "w6kAtr3T",
+                Ports = [6582, 6583],
+            },
+        },
+        new()
+        {
+            TitleId = "splinter-cell-conviction",
+            Name = "Splinter Cell: Conviction",
+            ResourceDir = "Titles/SplinterCellConviction",
+            ProtocolFamily = "conviction",
+            Matchers = new()
+            {
+                LegacyOnlineConfigId = "SplinterCell5_PC_PROD",
+                Ports = [6584, 6585],
+            },
+        },
+        new()
+        {
             TitleId = "farcry4",
             Name = "Far Cry 4",
             ResourceDir = "Titles/FarCry4",
@@ -96,6 +147,13 @@ internal static class DefaultTitles
                 AppId = "4eb9089b-324e-4e65-a055-5ea05cfeb68f",
                 SpaceId = "6f75883b-3b5b-45ce-a2d4-2a7a8477180c",
             },
+        },
+        new()
+        {
+            TitleId = "mag",
+            Name = "MAG",
+            ResourceDir = "Titles/MAG",
+            ProtocolFamily = "medius",
         },
     ];
 }
